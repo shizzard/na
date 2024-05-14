@@ -1,0 +1,6 @@
+[database]
+url = "postgres://postgres:postgres@localhost:5432/na"
+
+[http]
+listen_host = "localhost"
+listen_port = 8080
