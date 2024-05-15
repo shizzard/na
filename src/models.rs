@@ -1,6 +1,9 @@
-use crate::schema::*;
+use crate::schema::users::dsl::users as users_dsl;
+use crate::{errors::ApiError, schema::*, DbPool};
+use actix_web::web;
+use diesel::prelude::*;
 use diesel::{Insertable, Queryable};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 //
 // This struct is not serializable for a reason: it contains sensitive data
@@ -17,10 +20,21 @@ pub struct User {
     pub updated_at: chrono::NaiveDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize, Insertable)]
-#[table_name = "users"]
-pub struct NewUser<'a> {
-    pub email: &'a str,
-    pub name: &'a str,
-    pub hashed_password: &'a str,
+#[derive(Debug, Deserialize, Insertable)]
+#[diesel(table_name = users)]
+pub struct NewUser {
+    pub email: String,
+    pub name: String,
+    pub hashed_password: String,
+}
+
+impl NewUser {
+    pub fn write(&self, db: web::Data<DbPool>) -> Result<User, ApiError> {
+        let mut conn = db.get()?;
+        let inserted_user = diesel::insert_into(users_dsl)
+            .values(self)
+            .get_result(&mut conn)?;
+
+        Ok(inserted_user)
+    }
 }

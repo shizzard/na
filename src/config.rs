@@ -22,9 +22,15 @@ impl HttpConfig {
 }
 
 #[derive(Deserialize, Debug, Clone, Default)]
+pub(crate) struct JwtConfig {
+    pub secret: String,
+}
+
+#[derive(Deserialize, Debug, Clone, Default)]
 pub(crate) struct ServerConfig {
     pub database: DatabaseConfig,
     pub http: HttpConfig,
+    pub jwt: JwtConfig,
 }
 
 impl ServerConfig {

@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
 
 pub(crate) type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
-async fn start_http_listener(cfg: &ServerConfig) -> std::io::Result<()> {
+async fn start_http_listener(cfg: &'static ServerConfig) -> std::io::Result<()> {
     let manager = ConnectionManager::<PgConnection>::new(&cfg.database.url);
     let db_pool: DbPool = r2d2::Pool::builder()
         .build(manager)
@@ -42,6 +42,7 @@ async fn start_http_listener(cfg: &ServerConfig) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
+            .app_data(web::Data::new(cfg))
             .app_data(
                 web::JsonConfig::default()
                     .limit(4096)
@@ -56,9 +57,9 @@ async fn start_http_listener(cfg: &ServerConfig) -> std::io::Result<()> {
                         .into()
                     }),
             )
-            .route("/users", web::post().to(handlers::user_register))
-            .route("/login", web::post().to(handlers::user_login))
-            .route("/users", web::get().to(handlers::users_get))
+            .service(web::resource("/user").route(web::post().to(handlers::user::register)))
+            .service(web::resource("/auth/token").route(web::post().to(handlers::auth::token)))
+            .service(web::resource("/users").route(web::get().to(handlers::users::list)))
     })
     .bind(cfg.http.as_bind_str())?
     .run()
