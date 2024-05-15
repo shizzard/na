@@ -12,11 +12,13 @@
 mod config;
 mod errors;
 mod handlers;
+mod middleware;
 mod models;
 mod schema;
 
+use crate::config::ServerConfig;
+use crate::middleware::jwt::JwtMiddleware;
 use actix_web::{error::*, web, App, HttpResponse, HttpServer};
-use config::ServerConfig;
 use diesel::{r2d2::ConnectionManager, PgConnection};
 
 #[actix_rt::main]
@@ -59,7 +61,13 @@ async fn start_http_listener(cfg: &'static ServerConfig) -> std::io::Result<()> 
             )
             .service(web::resource("/user").route(web::post().to(handlers::user::register)))
             .service(web::resource("/auth/token").route(web::post().to(handlers::auth::token)))
-            .service(web::resource("/users").route(web::get().to(handlers::users::list)))
+            .service(
+                web::resource("/users")
+                    .wrap(JwtMiddleware {
+                        jwt_config: &cfg.jwt,
+                    })
+                    .route(web::get().to(handlers::users::list)),
+            )
     })
     .bind(cfg.http.as_bind_str())?
     .run()

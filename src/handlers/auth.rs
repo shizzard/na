@@ -80,7 +80,7 @@ fn generate_jwt_token(user: &User, jwt_cfg: &JwtConfig) -> Result<String, ApiErr
     let token = encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(jwt_cfg.secret.as_ref()),
+        &EncodingKey::from_secret(jwt_cfg.secret.as_bytes()),
     )?;
     Ok(token)
 }

@@ -25,7 +25,7 @@ impl From<User> for OutputUser {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Claims {
     sub: String,
     exp: usize,
