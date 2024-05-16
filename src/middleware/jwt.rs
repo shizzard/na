@@ -1,3 +1,4 @@
+//!
 //! JWT middleware
 //!
 //! Checks is the authorization token is valid.
@@ -25,7 +26,9 @@ pub(crate) struct Claims {
 ///
 /// JWT middleware factory.
 /// Contains JWT configuration part of server configuration.
+#[derive(Copy, Clone, Debug)]
 pub struct JwtMiddleware {
+    /// JWT part of configuration.
     pub jwt_config: &'static JwtConfig,
 }
 
@@ -49,6 +52,8 @@ where
     }
 }
 
+/// JWT middleware service, responsible for authorization token validation.
+#[derive(Debug)]
 pub struct JwtMiddlewareService<S> {
     service: S,
     jwt_cfg: &'static JwtConfig,

@@ -1,3 +1,6 @@
+//!
+//! Handler for creating JWT tokens.
+
 use std::borrow::Borrow;
 
 use actix_web::{web, HttpResponse};
@@ -17,18 +20,22 @@ use diesel::prelude::*;
 use super::User;
 
 ///
-/// Login request representation.
+/// Token create request representation.
 ///
 /// All fields are optional.
-#[derive(Debug, serde::Deserialize)]
-pub(crate) struct LoginRequest {
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct TokenCreateRequest {
+    /// Corresponds to the same field in [User] struct.
     pub email: String,
+    /// Corresponds to the same field in [User] struct.
     pub password: String,
 }
 
-/// Login response representation.
-#[derive(Debug, serde::Serialize)]
-pub(crate) struct LoginResponse {
+///
+/// Token create response representation.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct TokenCreateResponse {
+    /// JWT token to be used within `Authorization` HTTP header.
     pub token: String,
 }
 
@@ -52,10 +59,10 @@ pub(crate) struct LoginResponse {
 /// {
 ///     "token": "eyJ0e...xb26ww"
 /// }
-pub(crate) async fn token(
+pub async fn token(
     db: web::Data<DbPool>,
     cfg: web::Data<&'static ServerConfig>,
-    credentials: web::Json<LoginRequest>,
+    credentials: web::Json<TokenCreateRequest>,
 ) -> web::Either<HttpResponse, ApiError> {
     let user = match authenticate_user(db, credentials.into_inner()).await {
         Ok(user) => user,
@@ -65,12 +72,12 @@ pub(crate) async fn token(
         Ok(token) => token,
         Err(e) => return web::Either::Right(e),
     };
-    web::Either::Left(HttpResponse::Created().json(LoginResponse { token }))
+    web::Either::Left(HttpResponse::Created().json(TokenCreateResponse { token }))
 }
 
 async fn authenticate_user(
     db: web::Data<DbPool>,
-    credentials: LoginRequest,
+    credentials: TokenCreateRequest,
 ) -> Result<User, ApiError> {
     let user = web::block(move || -> Result<User, ApiError> {
         let mut conn = db.get()?;

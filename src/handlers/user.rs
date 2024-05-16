@@ -1,3 +1,6 @@
+//!
+//! Handler for handling new user registrations.
+
 use actix_web::{web, HttpResponse};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
@@ -9,10 +12,15 @@ use crate::{errors::ApiError, DbPool};
 use super::OutputUser;
 use crate::models::{NewUser, User};
 
+/// User creation request representation.
+/// No fields validation is set.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub(crate) struct InputUser {
+pub struct InputUser {
+    /// User email, corresponds to the field in [User].
     pub email: String,
+    /// User name, corresponds to the field in [User].
     pub name: String,
+    /// User password, corresponds to the field in [User].
     pub password: String,
 }
 
@@ -41,7 +49,7 @@ pub(crate) struct InputUser {
 ///   "id": 9,
 ///   "name": "john"
 /// }
-pub(crate) async fn register(
+pub async fn register(
     db: web::Data<DbPool>,
     item: web::Json<InputUser>,
 ) -> web::Either<HttpResponse, ApiError> {

@@ -1,3 +1,8 @@
+//!
+//! Handler for handling users listing requests.
+//!
+//! Relies on JWT middleware to ensure authorization.
+
 use actix_web::{web, HttpResponse};
 use diesel::prelude::*;
 use diesel::ExpressionMethods;
@@ -10,27 +15,28 @@ use super::OutputUser;
 // Might be put into server config
 const DEFAULT_QUERY_LIMIT: i32 = 10;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+/// Users list request representation.
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ListRequest {
+    /// A number of user records to retrieve (optional, default: 10)
     pub limit: Option<i32>,
+    /// User id to start the list from (not inclusive, optional, default: 0)
     pub after: Option<i32>,
 }
 
-#[derive(Debug, serde::Serialize)]
+/// Users list response representation.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ListResponse {
+    /// A list of user records (see [OutputUser]).
     pub users: Vec<OutputUser>,
 }
 
 ///
 /// Get list of registered users endpoint.
 ///
-/// Accepts two parameters:
-/// - limit: a number of user records to retrieve (optional, default: 10)
-/// - after: user id to start the list from (not inclusive, optional, default: 0)
-///
-/// Requires quthorization via JWT (see /auth/token handler).
-///
-/// Returns a list of user records.
+/// Accepts [ListRequest].
+/// Requires Authorization via JWT (see /auth/token handler).
+/// Returns [ListResponse].
 ///
 /// Example:
 /// GET /users?limit=5&after=16
@@ -54,7 +60,7 @@ pub struct ListResponse {
 ///   ]
 /// }
 ///
-pub(crate) async fn list(
+pub async fn list(
     db: web::Data<DbPool>,
     query: web::Query<ListRequest>,
 ) -> web::Either<HttpResponse, ApiError> {

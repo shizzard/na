@@ -1,0 +1,11 @@
+export RUST_LOG=info,tracing=warn,actix_web=debug,na=debug
+
+## `DATABASE_URL` is used by diesel cli tool
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/na
+## `NA__DATABASE_URL` is used by the server to configure itself
+export NA__DATABASE_URL=${DATABASE_URL}
+
+export NA__HTTP__LISTEN_HOST=localhost
+export NA__HTTP__LISTEN_PORT=8080
+
+export NA__JWT__SECRET=dev

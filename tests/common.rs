@@ -1,36 +1,19 @@
-//!
-//! The entry point for the web service.
-//!
-//! The endpoints are:
-//! - POST /user: create a new user.
-//! - POST /auth/token: crate a new access token
-//! - GET /users: get a list of registered users
-
-use actix_web::{error::*, web, App, HttpResponse, HttpServer};
+use actix_web::{dev::ServiceResponse, error::InternalError, test, web, App, HttpResponse};
 use diesel::{r2d2::ConnectionManager, PgConnection};
-use na::config::ServerConfig;
-use na::middleware::jwt::JwtMiddleware;
-use na::{errors, handlers, DbPool};
+use na::{config::ServerConfig, errors, handlers, middleware::jwt::JwtMiddleware, DbPool};
 
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
-    env_logger::init();
-
+pub async fn setup_server() -> impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = ServiceResponse,
+    Error = actix_web::Error,
+> {
     let cfg = ServerConfig::new_leaked();
-
-    start_http_listener(cfg).await
-}
-
-async fn start_http_listener(cfg: &'static ServerConfig) -> std::io::Result<()> {
     let manager = ConnectionManager::<PgConnection>::new(&cfg.database.url);
     let db_pool: DbPool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
 
-    let bind_addr = cfg.http.as_bind_str();
-    log::info!("Starting REST API listener on {bind_addr}");
-
-    HttpServer::new(move || {
+    test::init_service(
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
             .app_data(web::Data::new(cfg))
@@ -56,9 +39,17 @@ async fn start_http_listener(cfg: &'static ServerConfig) -> std::io::Result<()> 
                         jwt_config: &cfg.jwt,
                     })
                     .route(web::get().to(handlers::users::list)),
-            )
-    })
-    .bind(cfg.http.as_bind_str())?
-    .run()
+            ),
+    )
     .await
+}
+
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
+
+pub fn random_string(length: usize) -> String {
+    let mut rng = thread_rng();
+    (0..length)
+        .map(|_| rng.sample(Alphanumeric) as char)
+        .collect()
 }

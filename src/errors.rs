@@ -1,3 +1,6 @@
+//!
+//! Module contains API errors and ways to convert those errors into API responses.
+
 use actix_web::HttpResponse;
 use actix_web::{error::BlockingError as ActixBlockingError, Responder};
 use argon2::password_hash::errors::Error as Argon2Error;
@@ -6,33 +9,60 @@ use jsonwebtoken::errors::Error as JwtError;
 use r2d2::Error as R2d2Error;
 use serde::{Deserialize, Serialize};
 
+/// Enum representing API errors.
+///
+/// Implements [Responder] trait for actix_web, and can be used as a return
+/// value for request handlers.
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
+    /// Database error representation.
+    ///
+    /// May contain handlable errors (for example, a duplicate for index).
     #[error("Database error: {from}")]
     Diesel {
+        ///
         #[from]
         from: DieselError,
     },
+    /// Hashing error representation.
+    ///
+    /// Irrecoverable.
     #[error("Hashing error: {from}")]
     Argon2 {
+        ///
         #[from]
         from: Argon2Error,
     },
+    /// Actix blocking operations thread error representation.
+    ///
+    /// Irrecoverable.
     #[error("Actix blocking operation error: {from}")]
     ActixBlocking {
+        ///
         #[from]
         from: ActixBlockingError,
     },
+    /// Database pool error representation.
+    ///
+    /// Irrecoverable.
     #[error("Database pool error: {from}")]
     R2d2 {
+        ///
         #[from]
         from: R2d2Error,
     },
+    /// JWT error representation.
+    ///
+    /// May contain handlable errors (for example, JWT token validation error).
     #[error("JWT error: {from}")]
     Jwt {
+        ///
         #[from]
         from: JwtError,
     },
+    /// Invalid credentials error.
+    ///
+    /// Specific for JWT token create request.
     #[error("Invalid credentials provided")]
     InvalidCredentials {},
 }
@@ -75,6 +105,7 @@ fn generic_ise() -> HttpResponse<<ApiError as Responder>::Body> {
     })
 }
 
+#[allow(missing_docs)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ErrorPayload<'a> {
     pub reason: &'a str,

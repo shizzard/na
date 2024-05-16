@@ -1,9 +1,15 @@
 [database]
+## URI to the postgres instance
+## Note: This URI must be the you run diesel migrations against (which is set
+## via `DATABASE_URL` env variable)
 url = "postgres://postgres:postgres@localhost:5432/na"
 
 [http]
+## The host to bind the server to
 listen_host = "localhost"
+## The port to bind the server to
 listen_port = 8080
 
 [jwt]
+## JWT shared secret value
 secret = "dev"

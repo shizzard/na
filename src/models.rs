@@ -1,3 +1,6 @@
+//!
+//! Module contains database schemas representations.
+
 use crate::schema::users::dsl::users as users_dsl;
 use crate::{errors::ApiError, schema::*, DbPool};
 use actix_web::web;
@@ -14,11 +17,17 @@ use serde::Deserialize;
 /// data structure (see crate::handlers::OutputUser for example).
 #[derive(Debug, Queryable)]
 pub struct User {
+    /// User id, generated automatically.
     pub id: i32,
+    /// User email, used a user login.
     pub email: String,
+    /// User name
     pub name: String,
+    /// User password, hashed.
     pub hashed_password: String,
+    /// User creation datetime, generated automatically.
     pub created_at: chrono::NaiveDateTime,
+    /// User last update datetime, generated automatically.
     pub updated_at: chrono::NaiveDateTime,
 }
 
@@ -32,8 +41,11 @@ pub struct User {
 #[derive(Debug, Deserialize, Insertable)]
 #[diesel(table_name = users)]
 pub struct NewUser {
+    /// Corresponds to the same field in [User].
     pub email: String,
+    /// Corresponds to the same field in [User].
     pub name: String,
+    /// Corresponds to the same field in [User].
     pub hashed_password: String,
 }
 

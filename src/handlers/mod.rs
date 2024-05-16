@@ -1,8 +1,11 @@
+//!
+//! Contains all REST API handlers.
+
 pub mod auth;
 pub mod user;
 pub mod users;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::models::*;
 
@@ -13,11 +16,15 @@ use crate::models::*;
 /// Omits sensitive fields (password and updated_at).
 ///
 /// Should be created from the database-sourced User struct.
-#[derive(Debug, Serialize)]
-pub(crate) struct OutputUser {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OutputUser {
+    /// User id
     pub id: i32,
+    /// User email
     pub email: String,
+    /// User name
     pub name: String,
+    /// User creation datetime
     pub created_at: chrono::NaiveDateTime,
 }
 
