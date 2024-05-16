@@ -1,8 +1,8 @@
 use config::Config;
+use config::ConfigError;
 use config::Environment;
 use config::File;
 use serde_derive::Deserialize;
-use std::error::Error;
 
 #[derive(Deserialize, Debug, Clone, Default)]
 pub(crate) struct DatabaseConfig {
@@ -26,6 +26,8 @@ pub(crate) struct JwtConfig {
     pub secret: String,
 }
 
+///
+/// Server configuration
 #[derive(Deserialize, Debug, Clone, Default)]
 pub(crate) struct ServerConfig {
     pub database: DatabaseConfig,
@@ -34,7 +36,21 @@ pub(crate) struct ServerConfig {
 }
 
 impl ServerConfig {
-    pub(crate) fn new() -> Result<&'static Self, Box<dyn Error>> {
+    ///
+    /// Create a new server config structure.
+    ///
+    /// Two configuration sources are considered:
+    /// - config/default.toml: default configuration, suitable for local setup
+    /// - env variables
+    ///
+    /// Env variables are parsed as follows:
+    /// - Global prefix is `NA__`
+    /// - Path separator is `__`
+    ///
+    /// Example:
+    /// To set `ServerConfig.http.listen_port` via env variable, you should
+    /// have env variable `NA__HTTP__LISTEN_PORT` set to desired port number.
+    pub(crate) fn new() -> Result<Self, ConfigError> {
         let cfg = Config::builder()
             .add_source(File::with_name("config/default.toml"))
             .add_source(
@@ -46,15 +62,19 @@ impl ServerConfig {
             .try_deserialize::<ServerConfig>()?;
 
         // Probably there is a better way to make config global
-        Ok(Box::leak(Box::new(cfg)))
+        Ok(cfg)
     }
-}
 
-pub(crate) async fn get_leaked() -> &'static ServerConfig {
-    ServerConfig::new()
-        .map_err(move |err| {
-            log::error!("Failed to configure: {}", err);
-            std::process::exit(1);
-        })
-        .unwrap()
+    ///
+    /// Create a new leaked (&'static) config structure.
+    pub(crate) fn new_leaked() -> &'static ServerConfig {
+        Box::leak(Box::new(
+            ServerConfig::new()
+                .map_err(move |err| {
+                    log::error!("Failed to configure: {}", err);
+                    std::process::exit(1);
+                })
+                .unwrap(),
+        ))
+    }
 }

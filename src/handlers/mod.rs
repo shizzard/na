@@ -2,11 +2,18 @@ pub mod auth;
 pub mod user;
 pub mod users;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::models::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+///
+/// Generic user data structure to be used for rendering users data as
+/// API responses.
+///
+/// Omits sensitive fields (password and updated_at).
+///
+/// Should be created from the database-sourced User struct.
+#[derive(Debug, Serialize)]
 pub(crate) struct OutputUser {
     pub id: i32,
     pub email: String,
@@ -23,10 +30,4 @@ impl From<User> for OutputUser {
             created_at: user.created_at,
         }
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct Claims {
-    sub: String,
-    exp: usize,
 }

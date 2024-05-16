@@ -47,7 +47,7 @@ impl Responder for ApiError {
             | Self::Jwt { .. } => {
                 // Probably not the best place to put logs into?..
                 log::error!(
-                    "Responding an error to '{} {}' req due to error: {}",
+                    "Responding an error to '{} {}' request due to error: {}",
                     req.method(),
                     req.uri(),
                     &self

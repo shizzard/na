@@ -1,4 +1,8 @@
-use crate::{config::JwtConfig, handlers::Claims};
+//! JWT middleware
+//!
+//! Checks is the authorization token is valid.
+
+use crate::config::JwtConfig;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     http, Error,
@@ -7,6 +11,20 @@ use futures_util::future::LocalBoxFuture;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use std::future::{ready, Ready};
 
+///
+/// Represents JWT claims that are used when creating/validating the JWT tokens.
+///
+/// See RFC 7519 4. JWT Claims
+/// https://datatracker.ietf.org/doc/html/rfc7519#section-4
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Claims {
+    pub sub: String,
+    pub exp: usize,
+}
+
+///
+/// JWT middleware factory.
+/// Contains JWT configuration part of server configuration.
 pub struct JwtMiddleware {
     pub jwt_config: &'static JwtConfig,
 }

@@ -16,6 +16,31 @@ pub(crate) struct InputUser {
     pub password: String,
 }
 
+///
+/// Register a new user endpoint.
+///
+/// Accepts three parameters:
+/// - name: string
+/// - email: string
+/// - password: string
+///
+/// Returns a created user record.
+///
+/// POST /user
+/// Example:
+/// {
+///   "name": "John",
+///   "email": "john@example.org",
+///   "password": "secr3t"
+/// }'
+///
+/// Returns
+/// {
+///   "created_at": "2024-05-16T10:25:41.800997",
+///   "email": "john@example.org",
+///   "id": 9,
+///   "name": "john"
+/// }
 pub(crate) async fn register(
     db: web::Data<DbPool>,
     item: web::Json<InputUser>,

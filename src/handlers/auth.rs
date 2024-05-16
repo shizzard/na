@@ -8,24 +8,50 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use crate::{
     config::{JwtConfig, ServerConfig},
     errors::ApiError,
+    middleware::jwt::Claims,
     schema::users::dsl::*,
     DbPool,
 };
 use diesel::prelude::*;
 
-use super::{Claims, User};
+use super::User;
 
+///
+/// Login request representation.
+///
+/// All fields are optional.
 #[derive(Debug, serde::Deserialize)]
 pub(crate) struct LoginRequest {
     pub email: String,
     pub password: String,
 }
 
+/// Login response representation.
 #[derive(Debug, serde::Serialize)]
 pub(crate) struct LoginResponse {
     pub token: String,
 }
 
+///
+/// Create authorization token endpoint.
+///
+/// Accepts two parameters:
+/// - email: string
+/// - password: string
+///
+/// Returns a JWT auth token.
+///
+/// Example:
+/// POST /auth/token
+/// {
+///   "email": "john@example.org",
+///   "password": "secr3t"
+/// }
+///
+/// Returns
+/// {
+///     "token": "eyJ0e...xb26ww"
+/// }
 pub(crate) async fn token(
     db: web::Data<DbPool>,
     cfg: web::Data<&'static ServerConfig>,

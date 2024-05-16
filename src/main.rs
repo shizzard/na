@@ -1,5 +1,9 @@
 //! The entry point for the web service.
-//! TODO: explain the REST API contract
+//!
+//! The endpoints are:
+//! - POST /user: create a new user.
+//! - POST /auth/token: crate a new access token
+//! - GET /users: get a list of registered users
 
 #![warn(
     missing_docs,
@@ -25,7 +29,7 @@ use diesel::{r2d2::ConnectionManager, PgConnection};
 async fn main() -> std::io::Result<()> {
     env_logger::init();
 
-    let cfg = config::get_leaked().await;
+    let cfg = &config::ServerConfig::new_leaked();
 
     start_http_listener(cfg).await
 }
